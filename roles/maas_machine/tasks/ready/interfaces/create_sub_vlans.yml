@@ -1,0 +1,28 @@
+- name: "Create vlan {{ pif_name }}.{{ vl.subnet.VLAN.VID }}"
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/op-create_vlan"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      parent: "{{ pif_id }}"
+      vlan: "{{ vl.subnet.VLAN.ID }}"
+      name: "{{ pif_name }}.{{ vl.subnet.VLAN.VID }}"
+      mtu: "{{ vl.subnet.VLAN.MTU }}"
+  register: _response
+
+- name: "Link vlan {{ pif_name }}.{{ vl.subnet.VLAN.VID }}"
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/{{ vlan_interface_id }}/op-link_subnet"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      mode: "static"
+      subnet: "{{ vl.subnet.ID }}"
+      ip_address: "{{ vl.ip }}"
+  vars:
+    vlan_interface_id: "{{ _response.json.id }}"
+  when: vl.ip  # unconfigure(=unlink) if ip is not given

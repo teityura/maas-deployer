@@ -1,0 +1,23 @@
+[all:children]
+maas_server
+maas_machine
+
+# [NOTE] maas_server[0] is master
+# get api key from master
+[maas_server]
+zz_maas1
+localhost ansible_connection=local
+
+[maas_machine:children]
+compute
+maas_new
+maas_old
+
+[compute]
+zz_compute1
+
+[maas_new]
+# zz_maas2
+
+[maas_old]
+# zz_maas1

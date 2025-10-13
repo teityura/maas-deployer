@@ -1,0 +1,18 @@
+- name: Create main eth
+  include_tasks: create_main_eth.yml
+  vars:
+    eth:
+      subnet: "{{ SUBNETS[main_eth.subnet_key] }}"
+      ip: "{{ hostvars[node][main_eth.ip_key] }}"
+  when: hostvars[node].main_eth is defined
+
+- name: Create sub vlans
+  include_tasks: create_sub_vlans.yml
+  loop: "{{ sub_vlans }}"
+  loop_control:
+    loop_var: sub_vlan
+  vars:
+    vl:
+      subnet: "{{ SUBNETS[sub_vlan.subnet_key] }}"
+      ip: "{{ hostvars[node][sub_vlan.ip_key] }}"
+  when: hostvars[node].sub_vlans is defined

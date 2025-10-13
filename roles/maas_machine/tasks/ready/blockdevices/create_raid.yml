@@ -1,0 +1,75 @@
+- name: Get blockdevices
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/"
+    method: GET
+    headers:
+      Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+  register: _response_blockdevices
+
+- name: Get RAIDs
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/raids/"
+    method: GET
+    headers:
+      Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+  register: _response_raids
+
+- name: Create RAID
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/raids/"
+    method: POST
+    headers:
+      Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: json
+    body:
+      name: "{{ raid.name }}"
+      level: "{{ raid.level }}"
+      block_devices: "{{ raid_devices }}"
+  vars:
+    found_raid_names: "{{ _response_raids.json | map(attribute='name') | list }}"
+    found_device_names: "{{ _response_blockdevices.json | map(attribute='name') | list }}"
+  when:
+    - raid_devices is defined  # loaded from group_vars/*.yml
+    - raid.name not in found_raid_names
+    - found_device_names is superset(raid_devices)
+  register: _response_raids
+
+
+# make filesystem /dev/md0
+# - name: Format blockdevices
+#   uri:
+#     url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ _response_raids.json.virtual_device.id }}/op-format"
+#     method: POST
+#     headers:
+#       Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+#     body_format: form-multipart
+#     body:
+#       fstype: "{{ raid.fs }}"
+#   when: _response_raids.json.virtual_device.id is defined
+
+
+# make filesystem /dev/md0p1
+# - block:
+#     - name: Create partition
+#       uri:
+#         url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ _response_raids.json.virtual_device.id }}/partitions/"
+#         method: POST
+#         headers:
+#           Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+#         body_format: form-multipart
+#         body:
+#           size: "{{ raid.size }}"
+#           bootable: "{{ raid.bootable }}"
+#       when: _response_raids.json.virtual_device.id is defined
+#       register: _response_partitions
+
+#     - name: Format partition
+#       uri:
+#         url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ _response_raids.json.virtual_device.id }}/partition/{{ _response_partitions.json.id }}?op=format"
+#         method: POST
+#         headers:
+#           Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+#         body_format: form-multipart
+#         body:
+#           fstype: "{{ raid.fs }}"
+#       when: _response_partitions.json.id is defined

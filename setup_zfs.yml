@@ -1,0 +1,5 @@
+- hosts: maas_machine
+  gather_facts: no
+  become: true
+  roles:
+    - role: zfs

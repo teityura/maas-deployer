@@ -1,0 +1,9 @@
+- name: create_snapshot
+  import_tasks: create_snapshot.yml
+
+- name: merge_snapshot
+  import_tasks: merge_snapshot.yml
+  when: merge_snapshot | default(false)
+
+- name: print_result
+  import_tasks: print_result.yml

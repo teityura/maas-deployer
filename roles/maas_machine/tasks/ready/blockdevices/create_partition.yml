@@ -1,0 +1,31 @@
+- name: Create partition
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ block_device_id }}/partitions/"
+    method: POST
+    headers:
+      Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      size: "{{ partition.size }}"
+      bootable: "{{ partition.bootable }}"
+  register: _response
+
+- name: Format partition
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ block_device_id }}/partition/{{ _response.json.id }}?op=format"
+    method: POST
+    headers:
+      Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      fstype: "{{ partition.fs }}"
+
+- name: Mount partition
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ block_device_id }}/partition/{{ _response.json.id }}?op=mount"
+    method: POST
+    headers:
+      Authorization: "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      mount_point: "{{ partition.mp }}"

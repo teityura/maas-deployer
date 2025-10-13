@@ -1,0 +1,29 @@
+# read: [group_vars/xxx.yml]
+# ===
+# main_eth:
+#   subnet_key: "PXE"
+#   ip_key: "pxe_ip"
+# ===
+
+- name: "Unlink subnet {{ pif_name }}=>{{ item }}"
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/{{ pif_id }}/op-unlink_subnet"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      id: "{{ item | int }}"
+  loop: "{{ pif_link_ids }}"
+
+- name: "Link Subnet {{ pif_name }}"
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/{{ pif_id }}/op-link_subnet"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      mode: "static"
+      subnet: "{{ eth.subnet.ID }}"
+      ip_address: "{{ eth.ip }}"

@@ -1,0 +1,53 @@
+- name: Check backup files
+  block:
+    - name: "Stat {{ backup.maas_path }}"
+      stat:
+        path: "{{ backup.maas_path }}"
+      register: _result_stat_maas
+
+    - name: "Stat {{ backup.pg_path }}"
+      stat:
+        path: "{{ backup.pg_path }}"
+      register: _result_stat_db
+
+- name: Backup maas and postgresql
+  block:
+    - name: Dump postgresql
+      become_user: postgres
+      shell: "pg_dumpall -c > {{ backup.pg_path }}"
+
+    - name: Stop maas
+      command: snap stop maas
+    - name: Stop postgresql
+      service:
+        name: postgresql
+        state: stopped
+
+    - name: Save snap
+      command: snap save maas
+      register: _result_snap
+    - name: Export snap
+      command: "snap export-snapshot {{ id }} {{ backup.maas_path }}"
+      vars:
+        id: "{{ _result_snap.stdout_lines[-1].split()[0] }}"
+
+    - name: Start postgresql
+      service:
+        name: postgresql
+        state: started
+    - name: Start maas
+      command: snap restart maas
+  when: not _result_stat_maas.stat.exists
+    or  not _result_stat_db.stat.exists
+
+- name: "Sync-pull: {{ inventory_hostname }}"
+  synchronize:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    perms: no
+    owner: no
+    group: no
+    mode: pull
+  loop:
+    - { src: "{{ backup.pg_path }}", dest: "{{ sync.pg_path }}" }
+    - { src: "{{ backup.maas_path }}", dest: "{{ sync.maas_path }}" }

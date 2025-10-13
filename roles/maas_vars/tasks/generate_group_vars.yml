@@ -1,0 +1,56 @@
+- name: Check <Group_vars_file> exists
+  local_action:
+    module: stat
+    path: "{{ Group_vars_file }}"
+  register: _result_stat
+
+
+- name: Create <Group_vars_file>
+  block:
+    - name: Create Group_vars_file directory
+      local_action:
+        module: file
+        path: "{{ Group_vars_file | dirname }}"
+        state: directory
+
+    - name: Create Group_vars_file
+      local_action:
+        module: file
+        path: "{{ Group_vars_file }}"
+        state: touch
+  when: not _result_stat.stat.exists
+
+
+- name: Append maas auth to <Group_vars_file>
+  block:
+    - name: Get maas auth
+      shell: maas list
+      register: _result_maas
+      # admin http://x.x.x.x:5240/MAAS/api/2.0/ xxx:yyy:zzz
+
+    - name: Set maas auth
+      set_fact:
+        _maas_profile: "{{ _result_maas.stdout.split(' ')[0] }}"
+        _maas_endpoint: "{{ _result_maas.stdout.split(' ')[1].replace('MAAS/api/2.0/', 'MAAS') }}"
+        _maas_apikey: "{{ _result_maas.stdout.split(' ')[2] }}"
+
+    - name: Set _maas_apikeys
+      set_fact:
+        _maas_apikeys: "{{ _maas_apikey.split(':') }}"
+
+    - name: Generate <Group_vars_file>
+      local_action:
+        module: blockinfile
+        path: "{{ Group_vars_file }}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR maas auth"
+        block: |
+          MAAS_PROFILE: "{{ _maas_profile }}"
+          MAAS_ENDPOINT: "{{ _maas_endpoint }}"
+          MAAS_APIKEYS:
+            - "{{ _maas_apikeys[0] }}"
+            - "{{ _maas_apikeys[1] }}"
+            - "{{ _maas_apikeys[2] }}"
+      when: not _result_stat.stat.exists
+            or MAAS_ENDPOINT is not defined
+            or MAAS_ENDPOINT != _maas_endpoint
+            or MAAS_APIKEYS[0] != _maas_apikeys[0]

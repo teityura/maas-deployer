@@ -1,0 +1,1 @@
+OAuth oauth_version="1.0", oauth_signature_method="PLAINTEXT", oauth_consumer_key="{{ MAAS_APIKEYS[0] }}", oauth_token="{{ MAAS_APIKEYS[1] }}", oauth_signature="&{{ MAAS_APIKEYS[2] }}", oauth_nonce="{{ lookup('pipe', 'uuidgen') }}", oauth_timestamp="{{ lookup('pipe', 'date +%s') }}"

@@ -1,0 +1,5 @@
+users:
+  - name: root
+    pass: "<password_hash>"
+  - name: ubuntu
+    pass: "<password_hash>"

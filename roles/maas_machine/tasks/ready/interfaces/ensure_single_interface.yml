@@ -1,0 +1,37 @@
+- name: Get interfaces
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/"
+    method: GET
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+  register: _response
+
+- name: Set pif_id, pif_name, is_single_interface
+  set_fact:
+    pif_id: "{{ pif.id }}"
+    pif_name: "{{ pif.name }}"
+    pif_link_ids: "{{ pif.links | map(attribute='id') | list }}"
+    is_single_interface: "{{ physical_interfaces | length == 1 }}"
+  vars:
+    physical_interfaces: "{{ _response.json | selectattr('type', 'equalto', 'physical') | list }}"
+    pif: "{{ physical_interfaces | first }}"
+
+# - name: Fail if not single interface
+#   fail:
+#     msg: "This playbook requires exactly one physical interface."
+#   when: not is_single_interface
+
+- name: Delete logical interfaces
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/{{ item }}/"
+    method: DELETE
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    status_code: 204
+  vars:
+    logical_interfaces: "{{ _response.json | rejectattr('type', 'equalto', 'physical') | list }}"
+    bridge_ids: "{{ logical_interfaces | selectattr('type', 'equalto', 'bridge') | map(attribute='id') | list }}"
+    vlan_ids: "{{ logical_interfaces | selectattr('type', 'equalto', 'vlan') | map(attribute='id') | list }}"
+    bond_ids: "{{ logical_interfaces | selectattr('type', 'equalto', 'bond') | map(attribute='id') | list }}"
+  loop: "{{ bridge_ids + vlan_ids + bond_ids }}"
+  when: is_single_interface

@@ -1,0 +1,41 @@
+- name: Get blockdevices
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/"
+    method: GET
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+  register: _response
+
+- name: Extract block device id
+  set_fact:
+    block_device_id: "{{ (_response.json | selectattr('name', 'equalto', bdn) | first).id }}"
+  vars: 
+    bdn: "{{ hostvars[node]['boot_device_name'] | default(boot_device_name) }}"
+
+- name: Set boot disk
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/blockdevices/{{ block_device_id }}/op-set_boot_disk"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+
+# [NOTE] root_device ... 138 <= ok, /dev/nvme0n1 <= ng
+# /dev/nvme0n1 is not a valid root_device.
+# It should be one of: 138, 139, 140, 141.
+- name: Set storage layout
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/{{ hostvars[node]['SYSTEM_ID'] }}/op-set_storage_layout"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      storage_layout: blank
+      root_device: "{{ block_device_id }}"
+      # root_device: /dev/nvme0n1
+      # boot_size: 2G
+      # root_size: 500G
+      # vg_name: ubuntu-vg
+      # lv_name: ubuntu-lv
+      # lv_size: 100G
+  register: _response

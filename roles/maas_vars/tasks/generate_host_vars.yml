@@ -1,0 +1,53 @@
+- name: Check <Host_vars_file> exists
+  local_action:
+    module: stat
+    path: "{{ Host_vars_file }}"
+  register: _result_stat
+
+
+- name: Create <Host_vars_file>
+  block:
+    - name: Create Host_vars_file directory
+      local_action:
+        module: file
+        path: "{{ Host_vars_file | dirname }}"
+        state: directory
+
+    - name: Create Host_vars_file
+      local_action:
+        module: file
+        path: "{{ Host_vars_file }}"
+        state: touch
+  when: not _result_stat.stat.exists
+
+
+- block:
+    - name: Get machines by mac_address
+      uri:
+        url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/?mac_address={{ hostvars[node]['mac_address'] }}"
+        method: GET
+        headers:
+          "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+      register: _response
+
+    - name: Print machines response
+      debug:
+        msg: |
+          _response: {{ _response.json | to_nice_json }}
+          mac_address: {{ hostvars[node]['mac_address'] }}
+          node: {{ node }}
+
+    - name: Extract system_id from response
+      set_fact:
+        _system_id: "{{ _response.json[0].system_id | default('NOT_FOUND') }}"
+
+    - name: Generate <Host_vars_file>
+      local_action:
+        module: blockinfile
+        path: "{{ Host_vars_file }}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR system_id"
+        block: |
+          SYSTEM_ID: "{{ _system_id }}"
+      when:
+        not hostvars[node]['SYSTEM_ID'] is defined
+        or hostvars[node]['SYSTEM_ID'] != _system_id

@@ -1,0 +1,77 @@
+# [NOTE] maas_server[0] is master
+# get api key from master
+- name: Generate group_vars
+  hosts: maas_server[0]
+  gather_facts: false
+  become: true
+  vars:
+    GROUP_VARS_FILE: "{{ playbook_dir }}/group_vars/maas_server.yml"
+  tasks:
+    - name: Generate <Group_vars_file>
+      include_role:
+        name: maas_vars
+        tasks_from: generate_group_vars
+      vars:
+        Group_vars_file: "{{ GROUP_VARS_FILE }}"
+
+
+- name: Append group_vars
+  hosts: localhost
+  gather_facts: false
+  vars:
+    GROUP_VARS_FILE: "{{ playbook_dir }}/group_vars/maas_server.yml"
+    FABRIC: "fabric-0"
+  pre_tasks:
+    - name: Include GROUP_VARS_FILE
+      include_vars:
+        file: "{{ GROUP_VARS_FILE }}"
+  tasks:
+    - name: Append <Group_vars_file>
+      include_role:
+        name: maas_vars
+        tasks_from: append_group_vars
+      vars:
+        Group_vars_file: "{{ GROUP_VARS_FILE }}"
+        Fabric: "{{ FABRIC }}"
+
+
+- name: Generate host_vars
+  hosts: localhost
+  gather_facts: false
+  vars:
+    GROUP_VARS_FILE: "{{ playbook_dir }}/group_vars/maas_server.yml"
+    HOST_VARS_DIR: "{{ playbook_dir }}/host_vars"
+  pre_tasks:
+    - name: Include GROUP_VARS_FILE
+      include_vars:
+        file: "{{ GROUP_VARS_FILE }}"
+  tasks:
+    - name: Generate <Host_vars_file>
+      include_role:
+        name: maas_vars
+        tasks_from: generate_host_vars
+      vars:
+        Host_vars_file: "{{ HOST_VARS_DIR }}/{{ node }}.yml"
+      loop: "{{ groups['maas_machine'] }}"
+      loop_control:
+        loop_var: node
+
+
+- name: Print generated vars
+  hosts: localhost
+  gather_facts: false
+  vars:
+    GROUP_VARS_FILE: "{{ playbook_dir }}/group_vars/maas_server.yml"
+    HOST_VARS_DIR: "{{ playbook_dir }}/host_vars"
+  tasks:
+    - name: Debug group_vars
+      debug:
+        msg: "{{ lookup('file', GROUP_VARS_FILE) | from_yaml }}"
+    - name: Debug host_vars
+      debug:
+        msg: "{{ lookup('file', Host_vars_file) | from_yaml }}"
+      vars:
+        Host_vars_file: "{{ HOST_VARS_DIR }}/{{ node }}.yml"
+      loop: "{{ groups['maas_machine'] }}"
+      loop_control:
+        loop_var: node

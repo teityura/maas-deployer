@@ -1,0 +1,80 @@
+- name: "Sync-push: {{ inventory_hostname }}"
+  synchronize:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    perms: no
+    owner: no
+    group: no
+    mode: push
+  loop:
+    - { src: "{{ sync.pg_path }}", dest: "{{ backup.pg_path }}" }
+    - { src: "{{ sync.maas_path }}", dest: "{{ backup.maas_path }}" }
+
+- name: Set permission
+  file:
+    path: "{{ backup.pg_path | dirname }}"
+    recurse: yes
+    owner: postgres
+    group: postgres
+
+- name: Check Backup files
+  block:
+    - name: "Stat {{ backup.maas_path }}"
+      stat:
+        path: "{{ backup.maas_path }}"
+      register: _result_stat_maas
+
+    - name: "Stat {{ backup.pg_path }}"
+      stat:
+        path: "{{ backup.pg_path }}"
+      register: _result_stat_db
+
+- name: Restore maas and postgresql
+  block:
+    - name: Remove maas
+      shell: snap stop maas && snap remove maas
+
+    - name: Restore database
+      become_user: postgres
+      command: "psql -f {{ backup.pg_path }} postgres"
+    - name: Import snap
+      command: "snap import-snapshot {{ backup.maas_path }}"
+      register: _result_snap
+    - name: Restore snap
+      command: "snap restore {{ id }}"
+      vars:
+        id: "{{ _result_snap.stdout_lines[-1].split()[0] }}"
+
+    - name: Restart postgresql
+      service:
+        name: postgresql
+        state: restarted
+    - community.general.snap:
+        name: maas
+        channel: '{{ maas_version }}/{{ maas_snap_channel }}'
+    - name: Start maas
+      command: snap restart maas
+  when:
+    - _result_stat_maas.stat.exists
+    - _result_stat_db.stat.exists
+
+- name: Print init command
+  debug:
+    msg: |
+      MAAS successfully restored.
+      Please run the following command to complete the setup:
+      ```
+      ssh {{ inventory_hostname }}
+
+      maas init region+rack \
+        --maas-url 'http://xx.xx.xx.xx:5240/MAAS' \
+        --database-uri 'postgres://<user>:<pass>@localhost:5432/<db>'
+      => yes
+
+      key=$(maas list | awk '{print $NF}')
+      maas login admin 'http://xx.xx.xx.xx:5240/MAAS' "$key"
+      ```
+
+# [NOTE] cannot change controller name ...
+# sys_id=$(maas admin rack-controllers read | jq -r .[0].system_id)
+# maas admin rack-controller update "${sys_id}" "hostname=${HOSTNAME}"

@@ -1,0 +1,4 @@
+- import_tasks: input_password.yml
+  when: users | selectattr('pass', 'undefined') | list | length > 0
+
+- import_tasks: change_password.yml

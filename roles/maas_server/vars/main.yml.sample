@@ -1,0 +1,18 @@
+# maas environment details
+maas_version: "3.6"
+maas_snap_channel: "stable"
+maas_secret_file: "/var/snap/maas/common/maas/secret"
+
+# maas admin details
+admin_username: "admin"
+admin_password: "admin"
+admin_email: "admin@email.com"
+admin_ssh: "gh:<username>"
+
+# postgres
+maas_postgres_user: "maas"
+maas_postgres_host: "localhost"
+maas_postgres_database: "maasdb"
+maas_postgres_password: "<password>"
+maas_postgres_login: "{{ maas_postgres_user }}:{{ maas_postgres_password }}"
+maas_postgres_uri: "postgres://{{ maas_postgres_login }}@{{ maas_postgres_host }}:5432/{{ maas_postgres_database }}"

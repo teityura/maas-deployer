@@ -1,0 +1,31 @@
+# distro_series: jammy
+# hwe_kernel: hwe-22.04
+distro_series: noble
+
+raid_devices: null
+boot_device_name: "nvme0n1"
+
+main_eth:
+  subnet_key: "PXE"
+  ip_key: "pxe_ip"
+
+sub_bridges:
+  - type: "standard"
+    name: "br-mgmt"
+    subnet_key: "Management_dev"
+    ip_key: "mgmt_ip"
+
+  - type: "standard"
+    name: "br-storage"
+    subnet_key: "Storage_dev"
+    ip_key: "str_ip"
+
+  - type: "standard"
+    name: "br-vxlan"
+    subnet_key: "Tunnel_dev"
+    ip_key: "tun_ip"
+
+  - type: "standard"
+    name: "br-ext"
+    subnet_key: "Public_dev"
+    ip_key: "pub_ip"

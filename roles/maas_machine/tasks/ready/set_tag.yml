@@ -1,0 +1,29 @@
+- name: Check if tag exists
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/tags/{{ Tag_name }}/"
+    method: GET
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    status_code: [200, 404]
+  register: _retult_get
+
+- name: Create tag if not exists
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/tags/"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      name: "{{ Tag_name }}"
+  when: _retult_get.status == 404
+
+- name: Set tag to node
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/tags/{{ Tag_name }}/op-update_nodes"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      add: "{{ hostvars[node]['SYSTEM_ID'] }}"

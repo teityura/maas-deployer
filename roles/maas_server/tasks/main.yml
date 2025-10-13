@@ -1,0 +1,12 @@
+- import_tasks: install_postgresql.yml
+
+- name: Setup maas
+  block:
+    - set_fact:
+        maas_url: "http://{{ pxe_ip }}:5240/MAAS"
+      vars:
+        pxe_ip: "{{ hostvars[inventory_hostname].pxe_ip }}"
+    - import_tasks: install_maas.yml
+    - import_tasks: login_maas.yml
+
+- import_tasks: install_jq.yml

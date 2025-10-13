@@ -1,0 +1,37 @@
+- name: Check <Group_vars_file> exists
+  local_action:
+    module: stat
+    path: "{{ Group_vars_file }}"
+  register: _result_stat
+
+- name: Append subnet info to <Group_vars_file>
+  block:
+    - name: Get all subnets
+      uri:
+        url: "{{ MAAS_ENDPOINT }}/api/2.0/subnets/"
+        method: GET
+        headers:
+          "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+      register: _response
+
+    - name: Extract subnet from response
+      set_fact:
+        _subnets: "{{ _response.json | selectattr('vlan.fabric', 'equalto', Fabric) | sort(attribute='vlan.vid') }}"
+
+- name: Add each subnet to <Group_vars_file>
+  blockinfile:
+    path: "{{ Group_vars_file }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR subnets"
+    block: |
+      SUBNETS:
+      {% for subnet in _subnets %}
+        {{ subnet.name | replace(' ', '_') }}:
+          ID: "{{ subnet.id }}"
+          VLAN:
+            VID: "{{ subnet.vlan.vid }}"
+            ID: "{{ subnet.vlan.id }}"
+            FABRIC: "{{ subnet.vlan.fabric }}"
+            MTU: "{{ subnet.vlan.mtu }}"
+          CIDR: "{{ subnet.cidr }}"
+          GATEWAY_IP: "{{ subnet.gateway_ip }}"
+      {% endfor %}

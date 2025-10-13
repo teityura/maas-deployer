@@ -1,0 +1,11 @@
+- name: Commission machine
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/{{ hostvars[node]['SYSTEM_ID'] }}/op-commission"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+  register: _response
+
+- name: Print machine status
+  debug:
+    var: _response.json.status

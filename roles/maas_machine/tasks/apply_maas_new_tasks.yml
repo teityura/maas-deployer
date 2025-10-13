@@ -1,0 +1,26 @@
+- name: New status tasks
+  block:
+    - import_tasks: new/set_hostname.yml
+    - import_tasks: new/set_power_type.yml
+    - import_tasks: new/op_commission.yml
+  when: machine_status == "New"
+
+- name: Ready status tasks
+  block:
+    - import_tasks: ready/interfaces/ensure_single_interface.yml
+    - import_tasks: ready/interfaces/set_interfaces.yml
+      when: is_single_interface
+
+    - import_tasks: ready/blockdevices/set_layout_blank.yml
+    - import_tasks: ready/blockdevices/create_partition.yml
+      vars:
+        partition: "{{ partitions.boot_efi }}"
+    - import_tasks: ready/blockdevices/create_partition.yml
+      vars:
+        partition: "{{ partitions.boot }}"
+    - import_tasks: ready/blockdevices/create_partition.yml
+      vars:
+        partition: "{{ partitions.root_zfs }}"
+
+    - import_tasks: ready/op_deploy.yml
+  when: machine_status == "Ready"

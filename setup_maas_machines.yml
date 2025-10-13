@@ -1,0 +1,41 @@
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Apply maas_server tasks
+      include_role:
+        name: maas_machine
+      loop: "{{ groups['maas_new'] }}"
+      loop_control:
+        loop_var: node
+      vars:
+        Group_name: maas_new
+
+    - name: Apply compute_dev tasks
+      include_role:
+        name: maas_machine
+      loop: "{{ groups['compute_dev'] }}"
+      loop_control:
+        loop_var: node
+      vars:
+        Group_name: compute_dev
+        Tag_name: compute_dev
+
+    - name: Apply compute tasks
+      include_role:
+        name: maas_machine
+      loop: "{{ groups['compute'] }}"
+      loop_control:
+        loop_var: node
+      vars:
+        Group_name: compute
+        Tag_name: compute
+
+    - name: Apply general tasks
+      include_role:
+        name: maas_machine
+      loop: "{{ groups['general'] }}"
+      loop_control:
+        loop_var: node
+      vars:
+        Group_name: general
+        Tag_name: general

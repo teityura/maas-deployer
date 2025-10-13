@@ -1,0 +1,26 @@
+# [NOTE] raid_devices is loaded from group_vars/*.yml
+raid:
+  name: "md0"
+  level: "raid-1"
+  fs: "ext4"
+  size: ""
+  bootable: "false"
+
+partitions:
+  boot_efi:
+    mp: "/boot/efi"
+    fs: "fat32"
+    size: "512M"
+    bootable: "true"
+
+  boot:
+    mp: "/boot"
+    fs: "ext4"
+    size: "2G"
+    bootable: "false"
+
+  root_zfs:
+    mp: "/"
+    fs: "zfsroot"
+    size: ""
+    bootable: "false"

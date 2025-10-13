@@ -1,0 +1,30 @@
+- name: Create main eth
+  include_tasks: create_main_eth.yml
+  vars:
+    eth:
+      subnet: "{{ SUBNETS[main_eth.subnet_key] }}"
+      ip: "{{ hostvars[node][main_eth.ip_key] }}"
+  when: hostvars[node].main_eth is defined
+
+- name: Create main bridge
+  include_tasks: create_main_bridge.yml
+  vars:
+    br:
+      type: "{{ main_bridge.type }}"
+      name: "{{ main_bridge.name }}"
+      subnet: "{{ SUBNETS[main_bridge.subnet_key] }}"
+      ip: "{{ hostvars[node][main_bridge.ip_key] }}"
+  when: hostvars[node].main_bridge is defined
+
+- name: Create sub bridges
+  include_tasks: create_sub_bridges.yml
+  loop: "{{ sub_bridges }}"
+  loop_control:
+    loop_var: sub_bridge
+  vars:
+    br:
+      type: "{{ sub_bridge.type }}"
+      name: "{{ sub_bridge.name }}"
+      subnet: "{{ SUBNETS[sub_bridge.subnet_key] }}"
+      ip: "{{ hostvars[node][sub_bridge.ip_key] }}"
+  when: hostvars[node].sub_bridges is defined

@@ -1,0 +1,30 @@
+- name: Check SYSTEM_ID
+  debug:
+    msg: |
+      SYSTEM_ID is not defined.
+      Please run the 'generate_maas_vars.yml' playbook first.
+        node: {{ node }}
+        Group_name: {{ Group_name }}
+  when: hostvars[node]['SYSTEM_ID'] is not defined
+
+- name: Include group_vars
+  include_vars:
+    file: "group_vars/{{ Group_name }}.yml"
+
+- block:
+    - import_tasks: get_machine_status.yml
+
+    - import_tasks: apply_maas_new_tasks.yml
+      when: Group_name == "maas_new"
+
+    - import_tasks: apply_compute_dev_tasks.yml
+      when: Group_name == "compute_dev"
+
+    - import_tasks: apply_compute_tasks.yml
+      when: Group_name == "compute"
+
+    - import_tasks: apply_general_tasks.yml
+      when: Group_name == "general"
+  when:
+    - hostvars[node]['SYSTEM_ID'] is defined
+    - hostvars[node]['SYSTEM_ID'] != "NOT_FOUND"

@@ -1,0 +1,19 @@
+- name: Install MAAS - Snap
+  community.general.snap:
+    name: maas
+    channel: '{{ maas_version }}/{{ maas_snap_channel }}'
+  register: _result_snap
+
+- name: Initialise MAAS Controller - Snap
+  command: >
+    maas init region+rack
+    --maas-url {{ maas_url }}
+    --database-uri {{ maas_postgres_uri }}
+  when: _result_snap.changed
+
+- name: Create admin user
+  command: >
+    maas createadmin
+    --username={{ admin_username }} --password={{ admin_password }} \
+    --email={{ admin_email }} --ssh-import={{ admin_ssh | default('') }}
+  when: _result_snap.changed

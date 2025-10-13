@@ -1,0 +1,92 @@
+# BEGIN ANSIBLE MANAGED BLOCK FOR maas auth
+MAAS_PROFILE: "admin"
+MAAS_ENDPOINT: "http://10.10.20.3:5240/MAAS"
+MAAS_APIKEYS:
+  - "<api_key-1>"
+  - "<api_key-2>"
+  - "<api_key-3>"
+# END ANSIBLE MANAGED BLOCK FOR maas auth
+# BEGIN ANSIBLE MANAGED BLOCK FOR subnets
+SUBNETS:
+  PXE:
+    ID: "2"
+    VLAN:
+      VID: "0"
+      ID: "5001"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.20.0/24"
+    GATEWAY_IP: "10.10.20.1"
+  Management:
+    ID: "3"
+    VLAN:
+      VID: "30"
+      ID: "5002"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.30.0/24"
+    GATEWAY_IP: "10.10.30.1"
+  Storage:
+    ID: "4"
+    VLAN:
+      VID: "40"
+      ID: "5003"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.40.0/24"
+    GATEWAY_IP: "10.10.40.1"
+  Tunnel:
+    ID: "1"
+    VLAN:
+      VID: "50"
+      ID: "5004"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.50.0/24"
+    GATEWAY_IP: "10.10.50.1"
+  Public:
+    ID: "8"
+    VLAN:
+      VID: "60"
+      ID: "5008"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.60.0/24"
+    GATEWAY_IP: "10.10.60.1"
+  Management_dev:
+    ID: "5"
+    VLAN:
+      VID: "130"
+      ID: "5005"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.130.0/24"
+    GATEWAY_IP: "10.10.130.1"
+  Storage_dev:
+    ID: "6"
+    VLAN:
+      VID: "140"
+      ID: "5006"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.140.0/24"
+    GATEWAY_IP: "10.10.140.1"
+  Tunnel_dev:
+    ID: "7"
+    VLAN:
+      VID: "150"
+      ID: "5007"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.150.0/24"
+    GATEWAY_IP: "10.10.150.1"
+  Public_dev:
+    ID: "9"
+    VLAN:
+      VID: "160"
+      ID: "5009"
+      FABRIC: "fabric-0"
+      MTU: "1500"
+    CIDR: "10.10.160.0/24"
+    GATEWAY_IP: "10.10.160.1"
+# END ANSIBLE MANAGED BLOCK FOR subnets

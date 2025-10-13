@@ -1,0 +1,14 @@
+- name: Set hostname
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/{{ hostvars[node]['SYSTEM_ID'] }}/"
+    method: PUT
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      hostname: "{{ node }}"
+  register: _response
+
+- name: Print hostname
+  debug:
+    var: _response.json.hostname

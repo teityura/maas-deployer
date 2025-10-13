@@ -1,0 +1,31 @@
+- name: Create pg_dir
+  block:
+    - name: Check postgres user
+      command: getent passwd postgres
+      register: _result_getent
+      changed_when: false
+      failed_when: false
+
+    - name: Create pgdump directory as postgres user
+      file:
+        path: "{{ backup.pg_path | dirname }}"
+        state: directory
+        recurse: yes
+        owner: postgres 
+        group: postgres
+      when: _result_getent.rc == 0
+
+- name: Create maas_dir
+  file:
+    path: "{{ backup.maas_path | dirname }}"
+    state: directory
+
+- name: Create sync dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ sync.pg_path | dirname }}"
+    - "{{ sync.maas_path | dirname }}"
+  delegate_to: localhost

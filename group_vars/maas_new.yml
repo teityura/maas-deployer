@@ -1,0 +1,11 @@
+boot_device_name: "sda"
+
+main_eth:
+  subnet_key: "PXE"
+  ip_key: "pxe_ip"
+
+# main_bridge:
+#   type: "standard"  # [Note] MAAS DHCP cannot operate without a standard bridge.
+#   name: "br-ex"
+#   subnet_key: "PXE"
+#   ip_key: "pxe_ip"

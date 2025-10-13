@@ -1,0 +1,15 @@
+- name: Deploy machine
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/{{ hostvars[node]['SYSTEM_ID'] }}/op-deploy"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      distro_series: "{{ hostvars[node]['distro_series'] | default('') }}"
+      hwe_kernel: "{{ hostvars[node]['hwe_kernel'] | default('') }}"
+  register: _response
+
+- name: Print machine status
+  debug:
+    var: _response.json.status

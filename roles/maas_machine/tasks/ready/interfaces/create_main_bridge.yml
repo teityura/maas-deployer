@@ -1,0 +1,37 @@
+# read: [group_vars/xxx.yml]
+# ===
+# main_bridge:
+#   type: "standard"
+#   name: "br-ex"
+#   subnet_key: "PXE"
+#   ip_key: "pxe_ip"
+# ===
+
+- name: "Create bridge {{ br.name }}"
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/op-create_bridge"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      name: "{{ br.name }}"
+      type: "bridge"
+      parents: "{{ pif_id }}"
+      bridge_type: "{{ br.type }}"
+      mtu: "{{ br.subnet.VLAN.MTU }}"
+  register: _response
+
+- name: "Link bridge {{ br.name }}"
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/nodes/{{ hostvars[node]['SYSTEM_ID'] }}/interfaces/{{ bridge_interface_id }}/op-link_subnet"
+    method: POST
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body:
+      mode: "static"
+      subnet: "{{ br.subnet.ID }}"
+      ip_address: "{{ br.ip }}"
+  vars:
+    bridge_interface_id: "{{ _response.json.id }}"

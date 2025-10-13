@@ -1,0 +1,15 @@
+- name: Get machines
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/{{ hostvars[node]['SYSTEM_ID'] }}/"
+    method: GET
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+  register: _response
+
+- name: Print machine status
+  debug:
+    var: _response.json.status_name
+
+- name: Set machine status
+  set_fact:
+    machine_status: "{{ _response.json.status_name }}"

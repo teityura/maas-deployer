@@ -1,0 +1,8 @@
+- name: Register _result_zfs_list
+  command: zfs list -t snapshot -o name -H
+  register: _result_zfs_list
+  changed_when: no
+
+- name: Create snapshot
+  command: zfs snapshot rpool/ROOT/zfsroot@{{ snapshot_name }}
+  when: snapshot_name not in _result_zfs_list.stdout

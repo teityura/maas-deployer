@@ -1,0 +1,14 @@
+- name: Set power type
+  uri:
+    url: "{{ MAAS_ENDPOINT }}/api/2.0/machines/{{ hostvars[node]['SYSTEM_ID'] }}/"
+    method: PUT
+    headers:
+      "Authorization": "{{ lookup('template', '../../roles/common/templates/maas_oauth.j2') }}"
+    body_format: form-multipart
+    body: 
+      power_type: "manual"
+  register: _response
+
+- name: Print power_type
+  debug:
+    var: _response.json.power_type

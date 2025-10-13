@@ -1,0 +1,35 @@
+- name: Backup dir
+  hosts: maas_old[0], maas_new
+  gather_facts: yes
+  gather_subset: min
+  become: yes
+  pre_tasks:
+    - include_role:
+        name: maas_server
+        tasks_from: migrate/defilne_vars.yml
+      vars:
+        Master_Hostname: "{{ groups['maas_old'][0] }}"
+  tasks:
+    - include_role:
+        name: maas_server
+        tasks_from: migrate/create_backup_dirs.yml
+
+
+- name: Backup
+  hosts: maas_old[0]
+  gather_facts: no
+  become: yes
+  tasks:
+    - include_role:
+        name: maas_server
+        tasks_from: migrate/backup.yml
+
+
+- name: Restore
+  hosts: maas_new
+  gather_facts: no
+  become: yes
+  tasks:
+    - include_role:
+        name: maas_server
+        tasks_from: migrate/restore.yml

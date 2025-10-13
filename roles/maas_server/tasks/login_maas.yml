@@ -1,0 +1,11 @@
+- name: Get admin user API key
+  command: maas apikey --username {{ admin_username }}
+  register: _result_apikey
+
+- name: Login in MAAS
+  command: maas login {{ admin_username }} {{ maas_url }} {{ _result_apikey.stdout }}
+  register: _result_login
+  changed_when: yes
+  until: _result_login is not failed
+  retries: 10
+  delay: 3

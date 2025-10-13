@@ -1,0 +1,6 @@
+mac_address: xx:xx:xx:xx:xx:xx
+pxe_ip: 10.10.20.100
+
+# BEGIN ANSIBLE MANAGED BLOCK FOR system_id
+SYSTEM_ID: "xxxxxx"
+# END ANSIBLE MANAGED BLOCK FOR system_id

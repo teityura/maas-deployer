@@ -1,0 +1,8 @@
+- name: Register _result_zfs_list
+  command: zfs list -t snapshot -o name -H
+  register: _result_zfs_list
+  changed_when: no
+
+- name: Print _result_zfs_list
+  debug:
+    var: _result_zfs_list.stdout_lines

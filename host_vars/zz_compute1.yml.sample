@@ -1,0 +1,10 @@
+mac_address: xx:xx:xx:xx:xx:xx
+pxe_ip: 10.10.20.101
+mgmt_ip: 10.10.30.101
+str_ip: 10.10.40.101
+tun_ip: 10.10.50.101
+pub_ip: null
+
+# BEGIN ANSIBLE MANAGED BLOCK FOR system_id
+SYSTEM_ID: "xxxxxx"
+# END ANSIBLE MANAGED BLOCK FOR system_id

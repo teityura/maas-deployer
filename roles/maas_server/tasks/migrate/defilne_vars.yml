@@ -1,0 +1,12 @@
+- name: Define vars
+  set_fact:
+    backup:
+      pg_path: "{{ bdir }}/pgdump/maas_{{ today }}.sql"
+      maas_path: "{{ bdir }}/snapex/maas_{{ today }}.zip"
+    sync:
+      pg_path: "{{ ddir }}/pgdump/maas_{{ today }}.sql"
+      maas_path: "{{ ddir }}/snapex/maas_{{ today }}.zip"
+  vars:
+    bdir: "/backup"
+    ddir: "/backup/{{ Master_Hostname }}"
+    today: "{{ '%Y%m%d' | strftime }}"

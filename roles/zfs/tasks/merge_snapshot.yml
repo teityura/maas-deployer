@@ -1,0 +1,20 @@
+- name: Register _result_zfs_list
+  command: zfs list -t snapshot -o name -H
+  register: _result_zfs_list
+  changed_when: no
+
+- name: merge
+  block:
+    - name: Merge snapshot rpool/ROOT/zfsroot@{{ snapshot_name }}
+      command: zfs rollback -r rpool/ROOT/zfsroot@{{ snapshot_name }}
+
+    - name: Force reboot
+      shell: "nohup bash -c 'sleep 2 && echo b > /proc/sysrq-trigger' &"
+      async: 1
+      poll: 0
+
+    - name: Wait for reboot
+      wait_for_connection:
+        delay: 10
+        timeout: 300
+  when: snapshot_name in (_result_zfs_list.stdout_lines | join('\n'))
