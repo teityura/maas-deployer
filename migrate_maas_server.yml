@@ -6,7 +6,7 @@
   pre_tasks:
     - include_role:
         name: maas_server
-        tasks_from: migrate/defilne_vars.yml
+        tasks_from: migrate/define_vars.yml
       vars:
         Master_Hostname: "{{ groups['maas_old'][0] }}"
   tasks:
