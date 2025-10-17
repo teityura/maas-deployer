@@ -1,6 +1,6 @@
 - name: New status tasks
   block:
-    - import_tasks: ready/set_tag.yml
+    - import_tasks: new/set_tag.yml
     - import_tasks: new/set_hostname.yml
     - import_tasks: new/set_power_type.yml
     - import_tasks: new/op_commission.yml
